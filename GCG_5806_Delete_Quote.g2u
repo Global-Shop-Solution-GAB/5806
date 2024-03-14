@@ -1,0 +1,50 @@
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+
+'coded for Haskris by Silas Fulsom 12/17/2019 - no charge for this project but it is supported by maintenance.
+
+F.Intrinsic.Control.SetErrorHandler("Sub_Err")
+F.Intrinsic.Control.ClearErrors
+v.Local.iRet.Declare(Long)
+v.Local.sQuote.Declare(String)
+v.Local.sSQL.Declare(String)
+
+f.Intrinsic.Control.If(v.caller.Hook,<>,35015)
+	'if not running on the copy post hook, then end program immediately
+	f.Intrinsic.Control.End
+f.Intrinsic.Control.EndIf
+
+'get and pad old quote no for SQL statements.
+f.Intrinsic.String.LPad(v.Passed.000001.Trim,"0",7,v.Local.sQuote)
+
+
+V.Local.sError.Declare(String)
+
+f.Intrinsic.UI.Msgbox("Do you want to delete the old quote copied from?","Delete -Copy From- Quote?",4,v.Local.iRet)
+f.Intrinsic.Control.If(v.Local.iRet,=,6)
+	
+	f.ODBC.Connection!con.opencompanyconnection
+	'delete old quote records directly from table if they answered yes
+	f.Intrinsic.String.Build("Delete from QUOTE_HEADER where QUOTE_NO = '{0}'",v.Local.sQuote,v.Local.sSQL)
+	f.ODBC.Connection!con.execute(v.Local.sSQL)
+	
+	f.Intrinsic.String.Build("delete from QUOTE_HF_TEXT where Quote_No = '{0}'",v.Local.sQuote,v.Local.sSQL)
+	f.ODBC.Connection!con.execute(v.Local.sSQL)
+	
+	f.Intrinsic.String.Build("delete from QUOTE_LN_TEXT where quote_number = '{0}'",v.Local.sQuote,v.Local.sSQL)
+	f.ODBC.Connection!con.execute(v.Local.sSQL)
+	
+f.Intrinsic.Control.EndIf
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Sub_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: Project",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+
+Program.Sub.Main.End
